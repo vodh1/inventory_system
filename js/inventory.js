@@ -132,7 +132,7 @@ $(document).ready(function () {
 							showNotification(response.message, 'success');
 							location.reload();
 						} else {
-							handleValidationErrors(response, 'add');
+							handleValidationErrors(response.errors, 'add');
 						}
 					},
 					error: function () {
@@ -273,38 +273,11 @@ $(document).ready(function () {
 					showNotification(response.message, 'success');
 					location.reload();
 				} else {
-					handleValidationErrors(response, 'edit');
+					handleValidationErrors(response.errors, 'edit');
 				}
 			},
 			error: function () {
 				showNotification('Failed to update equipment', 'danger');
-			}
-		});
-	}
-
-	function handleValidationErrors(response, formType) {
-		// Clear previous errors
-		$('.is-invalid').removeClass('is-invalid');
-		$('.invalid-feedback').empty();
-
-		// Handle specific field errors
-		const fields = [
-			'name',
-			'description',
-			'category',
-			'max_borrow_days',
-			'units',
-			'image'
-		];
-		const prefix = formType === 'edit' ? '#edit-' : '#';
-
-		fields.forEach((field) => {
-			const errorKey = field + 'Err';
-			if (response[errorKey]) {
-				$(prefix + field).addClass('is-invalid');
-				$(prefix + field)
-					.next('.invalid-feedback')
-					.text(response[errorKey]);
 			}
 		});
 	}
@@ -356,6 +329,7 @@ $(document).ready(function () {
 	}
 
 	function handleValidationErrors(response, formType) {
+		console.log(response);
 		// Clear previous errors
 		$('.is-invalid').removeClass('is-invalid');
 		$('.invalid-feedback').empty();
@@ -372,12 +346,11 @@ $(document).ready(function () {
 		const prefix = formType === 'edit' ? '#edit-' : '#';
 
 		fields.forEach((field) => {
-			const errorKey = field + 'Err';
-			if (response[errorKey]) {
+			if (response[field]) {
 				$(prefix + field).addClass('is-invalid');
 				$(prefix + field)
 					.next('.invalid-feedback')
-					.text(response[errorKey]);
+					.text(response[field]);
 			}
 		});
 	}

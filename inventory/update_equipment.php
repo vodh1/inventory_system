@@ -17,30 +17,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $errors = [];
 
         if (empty($_POST['name'])) {
-            $errors['nameErr'] = 'Name is required';
+            $errors['name'] = 'Name is required';
+        } else {
+            $current_eq = $equipment->fetchById($equipment->id);
+            $eq_name = $equipment->fetchName($_POST['name']);
+            if ($eq_name) {
+
+                if ($current_eq['id'] !== $eq_name['id']) {
+                    $errors['name'] = 'Equipment name already exists';
+                }
+            }
         }
 
         if (empty($_POST['description'])) {
-            $errors['descriptionErr'] = 'Description is required';
+            $errors['description'] = 'Description is required';
         }
 
         if (empty($_POST['category_id'])) {
-            $errors['categoryErr'] = 'Category is required';
+            $errors['category'] = 'Category is required';
         }
 
         if (empty($_POST['max_borrow_days']) || intval($_POST['max_borrow_days']) <= 0) {
-            $errors['max_borrow_daysErr'] = 'Invalid max borrow days';
+            $errors['max_borrow_days'] = 'Invalid max borrow days';
         }
 
         if (empty($_POST['units']) || intval($_POST['units']) <= 0) {
-            $errors['unitsErr'] = 'Invalid number of units';
+            $errors['units'] = 'Invalid number of units';
         }
 
         // Handle image upload
         if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
             $equipment->image_path = upload_image($_FILES['image']);
             if (!$equipment->image_path) {
-                $errors['imageErr'] = 'Failed to upload image';
+                $errors['image'] = 'Failed to upload image';
             }
         }
 

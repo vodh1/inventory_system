@@ -11,38 +11,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $equipment->max_borrow_days = (int)$_POST['max_borrow_days'];
     $equipment->units = isset($_POST['units']) ? (int)$_POST['units'] : 1;
 
+    $equipment_name = new Equipment();
+
     $errors = [];
 
     // Validate name
     if (empty($equipment->name)) {
-        $errors['nameErr'] = "Name is required";
+        $errors['name'] = "Name is required";
+    } elseif ($equipment_name->fetchName($equipment->name) > 0) {
+        $errors['name'] = "Equipment name already exists";
     }
 
     // Validate description
     if (empty($equipment->description)) {
-        $errors['descriptionErr'] = "Description is required";
+        $errors['description'] = "Description is required";
     }
 
     // Validate category
     if (empty($equipment->category_id)) {
-        $errors['categoryErr'] = "Category is required";
+        $errors['category'] = "Category is required";
     }
 
     // Validate max_borrow_days
     if (empty($equipment->max_borrow_days)) {
-        $errors['max_borrow_daysErr'] = "Maximum Borrow Days is required";
+        $errors['max_borrow_days'] = "Maximum Borrow Days is required";
     }
 
     // Validate units
     if (empty($equipment->units)) {
-        $errors['unitsErr'] = "Number of Units is required";
+        $errors['units'] = "Number of Units is required";
     }
 
     // Validate image
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
         $equipment->image_path = upload_image($_FILES['image']);
         if (!$equipment->image_path) {
-            $errors['imageErr'] = "Failed to upload image";
+            $errors['image'] = "Failed to upload image";
         }
     } else {
         $equipment->image_path = '../uploads/equipment/default_image_equipment.png';

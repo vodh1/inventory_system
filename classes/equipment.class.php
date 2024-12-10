@@ -107,6 +107,24 @@ class Equipment
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function fetchName($name)
+    {
+        $sql = "SELECT * FROM equipment WHERE LOWER(name) = LOWER(:name)";
+        $stmt = $this->db->connect()->prepare($sql);
+        $stmt->bindParam(':name', $name);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function fetchById($id)
+    {
+        $sql = "SELECT * FROM equipment WHERE id = :id";
+        $stmt = $this->db->connect()->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function fetchRecord($id)
     {
         $sql = "SELECT e.*, c.name AS category_name, 
