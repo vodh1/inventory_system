@@ -177,9 +177,13 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-center">
-                                        <?php if ($transaction['status'] == BorrowStatus::Active->value): ?>
-                                            <button class="inline-flex items-center px-3 py-1.5 border border-green-600 rounded-md text-sm font-medium text-green-600 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                                onclick="markAsReturned(<?= $transaction['id'] ?>)">
+                                        <?php
+                                        date_default_timezone_set('Asia/Singapore');
+                                        $current_date = date('Y-m-d');
+                                        $borrow_date = $transaction['borrow_date'];
+                                        if ($transaction['status'] == BorrowStatus::Active->value): ?>
+                                            <button class="inline-flex disabled:cursor-not-allowed disabled:text-gray-200 items-center px-3 py-1.5 border border-green-600 rounded-md text-sm font-medium text-green-600 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                                <?= $current_date < $borrow_date ? 'disabled' : '' ?> onclick="markAsReturned(<?= $transaction['id'] ?>)">
                                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
