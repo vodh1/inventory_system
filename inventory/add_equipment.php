@@ -44,6 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!$equipment->image_path) {
             $errors['imageErr'] = "Failed to upload image";
         }
+    } else {
+        $equipment->image_path = '../uploads/equipment/default_image_equipment.png';
     }
 
     if (empty($errors)) {
@@ -51,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Fetch the last added equipment with its details
             $last_added = $equipment->fetchLastAdded();
             echo json_encode([
-                'status' => 'success', 
+                'status' => 'success',
                 'message' => 'Equipment added successfully',
                 'equipment' => $last_added
             ]);
@@ -63,7 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-function upload_image($file) {
+function upload_image($file)
+{
     $target_dir = "../uploads/equipment/"; // Ensure the path is correct
     if (!file_exists($target_dir)) {
         mkdir($target_dir, 0777, true);
@@ -80,4 +83,3 @@ function upload_image($file) {
     }
     return false;
 }
-?>

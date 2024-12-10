@@ -29,7 +29,7 @@ $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 $user_info = null;
 
 if ($user_id) {
-    $sql = "SELECT username, department, role FROM users WHERE id = :user_id";
+    $sql = "SELECT users.username, department.name AS department, role.name AS role FROM users INNER JOIN department ON department.id = users.department_id INNER JOIN role ON role.id = users.role_id WHERE users.id = :user_id";
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':user_id', $user_id);
     $stmt->execute();
@@ -45,83 +45,42 @@ $search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
 // Fetch all transactions without pagination
 $transactions_result = $transaction->fetchAllTransactions($status_filter, $start_date, $end_date, $search_query);
 ?>
-<!DOCTYPE html>
-<html lang="en">
+<?php require_once '../includes/header.php' ?>
+<style>
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 1rem;
+    }
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-    <style>
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter {
-            margin-bottom: 1rem;
-        }
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        padding: 0.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.375rem;
+    }
 
-        .dataTables_wrapper .dataTables_length select,
-        .dataTables_wrapper .dataTables_filter input {
-            padding: 0.5rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.375rem;
-        }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: 0.5rem 1rem;
+        margin: 0 0.25rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.375rem;
+    }
 
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            padding: 0.5rem 1rem;
-            margin: 0 0.25rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.375rem;
-        }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #dc2626 !important;
+        color: white !important;
+        border: 1px solid #dc2626;
+    }
+</style>
 
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: #dc2626 !important;
-            color: white !important;
-            border: 1px solid #dc2626;
-        }
-    </style>
-</head>
 
 <body class="bg-gray-50 flex min-h-screen relative overflow-x-hidden">
     <!-- Sidebar -->
     <?php require_once '../includes/side_bar.php'; ?>
     <!-- Main Container -->
-    <div class="flex-1 ml-[21rem] w-[calc(100%-16rem)] transition-all duration-300" id="main-container">
+    <div class="flex-1 ml-[16rem] w-[calc(100%-16rem)] transition-all duration-300" id="main-container">
         <!-- Top Navigation -->
-        <nav class="bg-white p-4 flex items-center gap-4 border-b border-gray-200 sticky top-0 z-40">
-            <button id="menuToggle" class="p-2 hidden">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-16 6h16"></path>
-                </svg>
-            </button>
-
-            <form class="flex-1 flex items-center bg-gray-50 p-2 rounded-lg" onsubmit="handleSearch(event)">
-                <input type="text"
-                    id="searchInput"
-                    name="search"
-                    placeholder="Search by equipment, borrower, unit code, or department"
-                    class="flex-1 bg-transparent ml-2 outline-none"
-                    value="<?php echo htmlspecialchars($search_query); ?>">
-                <button type="submit" class="ml-2 text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-search"></i>
-                </button>
-            </form>
-
-            <div class="flex items-center gap-3">
-                <?php if ($user_info): ?>
-                    <img src="assets/profile-1.png" alt="User" class="w-9 h-9 rounded-full">
-                    <div class="hidden sm:block">
-                        <h4 class="font-medium"><?php echo htmlspecialchars($user_info['username']); ?></h4>
-                        <p class="text-sm text-gray-600"><?php echo htmlspecialchars($user_info['department']); ?></p>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </nav>
+        <?php require_once '../includes/top_nav.php' ?>
 
         <!-- Main Content -->
         <main class="p-8">
@@ -189,7 +148,7 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($transaction['borrower_name']) ?></div>
+                                        <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($transaction['borrower_username']) ?></div>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         <span class="text-sm text-gray-900"><?= htmlspecialchars($transaction['department']) ?></span>
@@ -218,7 +177,7 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-center">
-                                        <?php if ($transaction['status'] == 'active'): ?>
+                                        <?php if ($transaction['status'] == BorrowStatus::Active->value): ?>
                                             <button class="inline-flex items-center px-3 py-1.5 border border-green-600 rounded-md text-sm font-medium text-green-600 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                                 onclick="markAsReturned(<?= $transaction['id'] ?>)">
                                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,6 +185,23 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                                                 </svg>
                                                 Mark as Returned
                                             </button>
+                                        <?php elseif ($transaction['status'] == BorrowStatus::Pending->value): ?>
+                                            <div class="flex justify-center gap-2">
+                                                <button class="inline-flex items-center px-3 py-1.5 border border-green-600 rounded-md text-sm font-medium text-green-600 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 approve-btn"
+                                                    data-request-id="<?= $transaction['id'] ?>">
+                                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                    Approve
+                                                </button>
+                                                <button class="inline-flex items-center px-3 py-1.5 border border-red-600 rounded-md text-sm font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 reject-btn"
+                                                    data-request-id="<?= $transaction['id'] ?>">
+                                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                    </svg>
+                                                    Reject
+                                                </button>
+                                            </div>
                                         <?php else: ?>
                                             <span class="text-sm text-gray-500">No action needed</span>
                                         <?php endif; ?>
@@ -272,7 +248,61 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                             const transactionId = $(this).data('id');
                             markAsReturned(transactionId);
                         });
+                        // Handle approve button click
+                        $('#transactionsTable').on('click', '.approve-btn', function() {
+                            var requestId = $(this).data('request-id');
+                            $.ajax({
+                                url: '../admin/request.php',
+                                type: 'POST',
+                                dataType: 'json',
+                                data: {
+                                    approve_borrow_request: true,
+                                    request_id: requestId
+                                },
+                                success: function(response) {
+                                    if (response.status === 'success') {
+                                        alert(response.message);
+                                        location.reload(); // Reload the page to refresh the table
+                                    } else {
+                                        alert('Error: ' + response.message);
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('AJAX Error:', status, error);
+                                    alert('An error occurred while processing the request.');
+                                }
+                            });
+                        });
+
+                        // Handle reject button click
+                        $('#transactionsTable').on('click', '.reject-btn', function() {
+                            var requestId = $(this).data('request-id');
+                            if (confirm('Are you sure you want to reject this request?')) {
+                                $.ajax({
+                                    url: '../admin/request.php',
+                                    type: 'POST',
+                                    dataType: 'json',
+                                    data: {
+                                        reject_borrow_request: true,
+                                        request_id: requestId
+                                    },
+                                    success: function(response) {
+                                        if (response.status === 'success') {
+                                            alert(response.message);
+                                            location.reload(); // Reload the page to refresh the table
+                                        } else {
+                                            alert('Error: ' + response.message);
+                                        }
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('AJAX Error:', status, error);
+                                        alert('An error occurred while processing the request.');
+                                    }
+                                });
+                            }
+                        });
                     }
+
 
                     // Initial binding
                     bindEventHandlers();
@@ -429,7 +459,7 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                                 <div>
                                     <h4 class="font-semibold mb-4">Borrower Information</h4>
                                     <div class="space-y-2">
-                                        <p><span class="text-gray-600">Name:</span> ${data.borrower_name}</p>
+                                        <p><span class="text-gray-600">Name:</span> ${data.borrower_username}</p>
                                         <p><span class="text-gray-600">Department:</span> ${data.department}</p>
                                         <p><span class="text-gray-600">Email:</span> ${data.borrower_email}</p>
                                         <p><span class="text-gray-600">Contact:</span> ${data.borrower_contact}</p>
@@ -488,6 +518,7 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                     });
                 });
             </script>
+
 </body>
 
 </html>

@@ -1,14 +1,17 @@
 <?php
 require_once 'database.class.php';
 
-class Transaction {
+class Transaction
+{
     private $db;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->db = new Database();
     }
 
-    public function fetchTransactions($status_filter = 'all', $start_date = null, $end_date = null, $search_query = '', $offset = 0, $limit = 10) {
+    public function fetchTransactions($status_filter = 'all', $start_date = null, $end_date = null, $search_query = '', $offset = 0, $limit = 10)
+    {
         $conditions = [];
         $params = [];
         $types = '';
@@ -33,7 +36,7 @@ class Transaction {
         }
 
         if ($search_query) {
-            $conditions[] = "(e.name LIKE ? OR b.borrower_name LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
+            $conditions[] = "(e.name LIKE ? OR b.borrower_username LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
             $search_param = "%{$search_query}%";
             $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param]);
             $types .= 'ssss';
@@ -44,7 +47,7 @@ class Transaction {
                 FROM borrowings b 
                 JOIN equipment_units eu ON b.unit_id = eu.id 
                 JOIN equipment e ON eu.equipment_id = e.id 
-                LEFT JOIN users u ON b.borrower_name = u.username
+                LEFT JOIN users u ON b.borrower_username = u.username
                 LEFT JOIN categories c ON e.category_id = c.id";
 
         if (!empty($conditions)) {
@@ -73,7 +76,8 @@ class Transaction {
         }
     }
 
-    public function fetchAllTransactions($status_filter = 'all', $start_date = null, $end_date = null, $search_query = '') {
+    public function fetchAllTransactions($status_filter = 'all', $start_date = null, $end_date = null, $search_query = '')
+    {
         $conditions = [];
         $params = [];
 
@@ -95,18 +99,19 @@ class Transaction {
         }
 
         if ($search_query) {
-            $conditions[] = "(e.name LIKE ? OR b.borrower_name LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
+            $conditions[] = "(e.name LIKE ? OR b.borrower_username LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
             $search_param = "%{$search_query}%";
             $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param]);
         }
 
         $sql = "SELECT b.*, e.name AS equipment_name, e.image_path, eu.unit_code, eu.status as unit_status, 
-                       u.department, c.name AS category_name
+                       department.name AS department, c.name AS category_name
                 FROM borrowings b 
                 JOIN equipment_units eu ON b.unit_id = eu.id 
                 JOIN equipment e ON eu.equipment_id = e.id 
-                LEFT JOIN users u ON b.borrower_name = u.username
-                LEFT JOIN categories c ON e.category_id = c.id";
+                LEFT JOIN users u ON b.borrower_username = u.username
+                JOIN department ON department.id = u.department_id
+                JOIN categories c ON e.category_id = c.id";
 
         if (!empty($conditions)) {
             $sql .= " WHERE " . implode(" AND ", $conditions);
@@ -129,7 +134,8 @@ class Transaction {
         }
     }
 
-    public function getTotalTransactions($status_filter = 'all', $start_date = null, $end_date = null, $search_query = '') {
+    public function getTotalTransactions($status_filter = 'all', $start_date = null, $end_date = null, $search_query = '')
+    {
         $conditions = [];
         $params = [];
         $types = '';
@@ -154,7 +160,7 @@ class Transaction {
         }
 
         if ($search_query) {
-            $conditions[] = "(e.name LIKE ? OR b.borrower_name LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
+            $conditions[] = "(e.name LIKE ? OR b.borrower_username LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
             $search_param = "%{$search_query}%";
             $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param]);
             $types .= 'ssss';
@@ -164,7 +170,7 @@ class Transaction {
                 FROM borrowings b 
                 JOIN equipment_units eu ON b.unit_id = eu.id
                 JOIN equipment e ON eu.equipment_id = e.id
-                JOIN users u ON b.borrower_name = u.username";
+                JOIN users u ON b.borrower_username = u.username";
 
         if (!empty($conditions)) {
             $sql .= " WHERE " . implode(" AND ", $conditions);
@@ -181,7 +187,8 @@ class Transaction {
         return $result['total'];
     }
 
-    public function markAsReturned($borrowing_id) {
+    public function markAsReturned($borrowing_id)
+    {
         try {
             $conn = $this->db->connect();
             $conn->beginTransaction();
@@ -233,4 +240,3 @@ class Transaction {
         }
     }
 }
-?>

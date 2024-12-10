@@ -15,7 +15,7 @@ require_once '../dashboard/fetch_matrix.php';
     <!-- Sidebar -->
     <?php require_once '../includes/side_bar.php' ?>
     <!-- Main Container -->
-    <div class="flex-1 ml-[21rem] transition-all duration-300" id="mainContent">
+    <div class="flex-1 ml-[16rem] transition-all duration-300" id="mainContent">
         <!-- Navigation -->
 
         <!-- Main Content -->

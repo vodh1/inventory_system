@@ -83,13 +83,18 @@ class Equipment
             $sql .= " WHERE " . implode(' AND ', $where_conditions);
         }
 
-        $sql .= " LIMIT :limit OFFSET :offset";
+        if ($limit) {
+            $sql .= " LIMIT :limit OFFSET :offset";
+        }
 
         $stmt = $this->db->connect()->prepare($sql);
         if (!empty($category)) $stmt->bindParam(':category', $category);
         if (!empty($search)) $stmt->bindValue(':search', '%' . $search . '%');
-        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+        if ($limit) {
+            $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+        }
+
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

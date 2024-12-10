@@ -67,6 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 $accounts = $account->fetchAccounts();
+$roles = $account->fetchRoles();
+$departments = $account->fetchDepartments();
 ?>
 <?php require_once '../includes/header.php'; ?>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
@@ -75,7 +77,7 @@ $accounts = $account->fetchAccounts();
     <!-- Sidebar -->
     <?php require_once '../includes/side_bar.php'; ?>
     <!-- Main Container -->
-    <div class="ml-[21rem] flex-1 w-[calc(100%-16rem)]">
+    <div class="ml-[16rem] flex-1 w-[calc(100%-16rem)]">
         <!-- Navigation -->
         <?php require_once '../includes/top_nav.php'; ?>
         <!-- Main Content -->
@@ -89,9 +91,6 @@ $accounts = $account->fetchAccounts();
                 <div class="flex gap-3">
                     <button class="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800" onclick="showAddAccountModal()">
                         Add New Account
-                    </button>
-                    <button class="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50">
-                        Export
                     </button>
                 </div>
             </div>
@@ -114,34 +113,34 @@ $accounts = $account->fetchAccounts();
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200 dark:divide-gray-700">
                                 <?php foreach ($accounts as $account): ?>
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 account-row" data-department="<?php echo $account['department']; ?>">
+                                    <tr class="transition-colors duration-200 account-row" data-department="<?php echo $account['department']; ?>">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="flex-shrink-0 h-12 w-12">
                                                     <img class="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
-                                                        src="<?php echo $account['profile_image'] ? $account['profile_image'] : 'assets/default-profile.png'; ?>"
+                                                        src="<?php echo $account['profile_image'] ? $account['profile_image'] : '../assets/default-profile.png'; ?>"
                                                         alt="Profile">
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900 dark:text-white account-name">
+                                            <div class="text-sm font-medium text-black dark:text-white account-name">
                                                 <?php echo $account['first_name'] . ' ' . $account['middle_name'] . ' ' . $account['last_name']; ?>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-600 dark:text-gray-300 account-email">
+                                            <div class="text-sm text-gray-600 text-black dark:text-gray-300 account-email">
                                                 <?php echo $account['email']; ?>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                            <?php echo $account['role'] === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'; ?>">
+                                            <?php echo $account['role'] === Role::Administrator->value ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'; ?>">
                                                 <?php echo $account['role']; ?>
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-600 dark:text-gray-300 account-department">
+                                            <div class="text-sm text-gray-600 text-black dark:text-gray-300 account-department">
                                                 <?php echo $account['department']; ?>
                                             </div>
                                         </td>
@@ -170,7 +169,7 @@ $accounts = $account->fetchAccounts();
                                                     <svg class="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
-                                                    Disable
+                                                    Delete
                                                 </button>
                                             </form>
                                         </td>
@@ -254,22 +253,18 @@ $accounts = $account->fetchAccounts();
                             <label class="font-medium text-gray-800">Role *</label>
                             <select name="role" required class="p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Select Role</option>
-                                <option value="user">User</option>
-                                <option value="staff">Staff</option>
-                                <option value="admin">Admin</option>
+                                <?php foreach ($roles as $role): ?>
+                                    <option value="<?= $role['id'] ?>"><?= $role['name'] ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="flex flex-col gap-2">
                             <label class="font-medium text-gray-800">Department *</label>
                             <select name="department" required class="p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Select Department</option>
-                                <option value="IT">Information Technology</option>
-                                <option value="HR">Human Resources</option>
-                                <option value="Finance">Finance</option>
-                                <option value="Marketing">Marketing</option>
-                                <option value="Operations">Operations</option>
-                                <option value="Sales">Sales</option>
-                                <option value="Other">Other</option>
+                                <?php foreach ($departments as $department): ?>
+                                    <option value="<?= $department['id'] ?>"><?= $department['name'] ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="flex flex-col gap-2">
@@ -392,22 +387,18 @@ $accounts = $account->fetchAccounts();
                             <label class="font-medium text-gray-800">Role *</label>
                             <select name="role" id="edit_role" required class="p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Select Role</option>
-                                <option value="user">User</option>
-                                <option value="staff">Staff</option>
-                                <option value="admin">Admin</option>
+                                <?php foreach ($roles as $role): ?>
+                                    <option value="<?= $role['id'] ?>"><?= $role['name'] ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="flex flex-col gap-2">
                             <label class="font-medium text-gray-800">Department *</label>
                             <select name="department" id="edit_department" required class="p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Select Department</option>
-                                <option value="IT">Information Technology</option>
-                                <option value="HR">Human Resources</option>
-                                <option value="Finance">Finance</option>
-                                <option value="Marketing">Marketing</option>
-                                <option value="Operations">Operations</option>
-                                <option value="Sales">Sales</option>
-                                <option value="Other">Other</option>
+                                <?php foreach ($departments as $department): ?>
+                                    <option value="<?= $department['id'] ?>"><?= $department['name'] ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="flex flex-col gap-2">
@@ -731,9 +722,9 @@ $accounts = $account->fetchAccounts();
                         throw new Error(data.error);
                     }
 
-                    document.getElementById('detailsProfileImage').src = data.profile_image;
+                    document.getElementById('detailsProfileImage').src = data.profile_image || '../assets/default-profile.png';
                     document.getElementById('detailsFullName').textContent = `${data.first_name} ${data.middle_name} ${data.last_name}`;
-                    document.getElementById('detailsRole').textContent = data.role;
+                    document.getElementById('detailsRole').textContent = data.role_name;
 
                     // Fix role badge classes
                     const roleBadge = document.getElementById('detailsRole');
@@ -753,7 +744,7 @@ $accounts = $account->fetchAccounts();
                     document.getElementById('detailsContactNumber').textContent = data.contact_number;
                     document.getElementById('detailsAddress').textContent = data.address;
                     document.getElementById('detailsUsername').textContent = data.username;
-                    document.getElementById('detailsDepartment').textContent = data.department;
+                    document.getElementById('detailsDepartment').textContent = data.department_name;
 
                     setTimeout(() => {
                         modal.classList.add('opacity-100');
@@ -771,7 +762,7 @@ $accounts = $account->fetchAccounts();
             modal.classList.remove('opacity-100');
             modal.querySelector('.transform').classList.add('-translate-y-5');
             setTimeout(() => {
-                modal.classList.remove('flex');
+                modal.style.display = 'none';
                 modal.classList.add('hidden');
                 modal.querySelector('.transform').classList.remove('-translate-y-5');
 

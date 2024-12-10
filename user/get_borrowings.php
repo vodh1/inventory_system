@@ -24,7 +24,7 @@ $sql = "SELECT b.*, e.name AS equipment_name, e.image_path, eu.unit_code
         FROM borrowings b 
         JOIN equipment_units eu ON b.unit_id = eu.id 
         JOIN equipment e ON eu.equipment_id = e.id 
-        WHERE b.borrower_name = (SELECT username FROM users WHERE id = :user_id) 
+        WHERE b.borrower_username = (SELECT username FROM users WHERE id = :user_id) 
         ORDER BY b.status, b.borrow_date DESC 
         LIMIT :offset, :items_per_page";
 
@@ -40,7 +40,7 @@ $total_borrowings_sql = "SELECT COUNT(*) as total
                          FROM borrowings b 
                          JOIN equipment_units eu ON b.unit_id = eu.id 
                          JOIN equipment e ON eu.equipment_id = e.id 
-                         WHERE b.borrower_name = (SELECT username FROM users WHERE id = :user_id)";
+                         WHERE b.borrower_username = (SELECT username FROM users WHERE id = :user_id)";
 
 $total_stmt = $conn->connect()->prepare($total_borrowings_sql);
 $total_stmt->bindParam(':user_id', $user_id);
@@ -48,19 +48,19 @@ $total_stmt->execute();
 $total_borrowings = $total_stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
 // Calculate counts for active, pending, and completed borrowings
-$active_count_sql = "SELECT COUNT(*) as total FROM borrowings WHERE status = 'active' AND borrower_name = (SELECT username FROM users WHERE id = :user_id)";
+$active_count_sql = "SELECT COUNT(*) as total FROM borrowings WHERE status = 'active' AND borrower_username = (SELECT username FROM users WHERE id = :user_id)";
 $active_stmt = $conn->connect()->prepare($active_count_sql);
 $active_stmt->bindParam(':user_id', $user_id);
 $active_stmt->execute();
 $active_count = $active_stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-$pending_count_sql = "SELECT COUNT(*) as total FROM borrowings WHERE status = 'pending' AND borrower_name = (SELECT username FROM users WHERE id = :user_id)";
+$pending_count_sql = "SELECT COUNT(*) as total FROM borrowings WHERE status = 'pending' AND borrower_username = (SELECT username FROM users WHERE id = :user_id)";
 $pending_stmt = $conn->connect()->prepare($pending_count_sql);
 $pending_stmt->bindParam(':user_id', $user_id);
 $pending_stmt->execute();
 $pending_count = $pending_stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-$completed_count_sql = "SELECT COUNT(*) as total FROM borrowings WHERE status = 'returned' AND borrower_name = (SELECT username FROM users WHERE id = :user_id)";
+$completed_count_sql = "SELECT COUNT(*) as total FROM borrowings WHERE status = 'returned' AND borrower_username = (SELECT username FROM users WHERE id = :user_id)";
 $completed_stmt = $conn->connect()->prepare($completed_count_sql);
 $completed_stmt->bindParam(':user_id', $user_id);
 $completed_stmt->execute();
@@ -78,4 +78,3 @@ $response = [
 ];
 
 echo json_encode($response);
-?>

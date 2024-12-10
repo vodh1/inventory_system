@@ -5,18 +5,16 @@ require_once '../classes/equipment.class.php';
 
 
 $equipment = new Equipment();
-$equipment_list = $equipment->showAll();
+$equipment_list = $equipment->showAll(null, null, null, null);
 $categories = $equipment->fetchCategory();
 ?>
 <?php require_once '../includes/header.php' ?>
-
-</style>
 
 <body class="bg-gray-100 min-h-screen flex relative overflow-x-hidden">
     <!-- Sidebar -->
     <?php require_once '../includes/side_bar.php' ?>
     <!-- Main Container -->
-    <div class="ml-[21rem] flex-1 w-[calc(100%-16rem)]">
+    <div class="ml-[16rem] flex-1 w-[calc(100%-16rem)]">
         <!-- Navigation -->
         <?php require_once '../includes/top_nav.php' ?>
         <!-- Main Content -->

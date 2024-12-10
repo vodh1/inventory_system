@@ -1,7 +1,9 @@
 <?php
 require_once '../classes/database.class.php';
+require_once '../libs/enums.php';
 
-function getPaginatedEquipment($items_per_page, $current_page, $category = '', $search_query = '') {
+function getPaginatedEquipment($items_per_page, $current_page, $category = '', $search_query = '')
+{
     $conn = new Database();
     $pdo = $conn->connect();
 
@@ -34,7 +36,7 @@ function getPaginatedEquipment($items_per_page, $current_page, $category = '', $
     // Get equipment with pagination
     $sql = "SELECT e.*, c.name AS category_name, 
             (SELECT COUNT(*) FROM equipment_units 
-             WHERE equipment_id = e.id AND status = 'available') as available_units
+             WHERE equipment_id = e.id AND status = :status) as available_units
             FROM equipment e
             JOIN categories c ON e.category_id = c.id";
 
@@ -43,8 +45,9 @@ function getPaginatedEquipment($items_per_page, $current_page, $category = '', $
     }
 
     $sql .= " LIMIT :limit OFFSET :offset";
-
+    $status = UnitStatus::Available->value;
     $stmt = $pdo->prepare($sql);
+    $stmt->bindParam(':status', $status);
     if ($category) $stmt->bindParam(':category', $category);
     if (!empty($search_query)) $stmt->bindValue(':search_query', '%' . $search_query . '%');
     $stmt->bindParam(':limit', $items_per_page, PDO::PARAM_INT);
@@ -78,10 +81,11 @@ function getPaginatedEquipment($items_per_page, $current_page, $category = '', $
     ];
 }
 
-function generateEquipmentRowHTML($equipment) {
+function generateEquipmentRowHTML($equipment)
+{
     $html = '<div class="bg-white rounded-xl overflow-hidden shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group">';
     $html .= '<div class="relative h-40 lg:h-48 overflow-hidden">';
-    $html .= '<img src="' . $equipment['image_path'] . '" alt="' . $equipment['name'] . '" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">';
+    $html .= '<img src="' . (!empty($equipment['image_path']) ? $equipment['image_path'] : '../uploads/equipment/default_image_equipment.png') . '" alt="' . $equipment['name'] . '" class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110">';
     $html .= '<div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>';
     $html .= '</div>';
     $html .= '<div class="p-4 transition-colors duration-300 group-hover:bg-gray-50">';
@@ -118,4 +122,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action']) && $_GET['acti
     echo json_encode($data);
     exit;
 }
-?>

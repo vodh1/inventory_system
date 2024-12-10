@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../classes/database.class.php';
+require_once '../libs/enums.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
@@ -10,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $conn = $db->connect();
 
     // Prepare and execute the query
-    $sql = "SELECT id, username, password, role, first_name, last_name FROM users WHERE username = :username";
+    $sql = "SELECT users.id, users.username, users.password, role.name AS role, users.first_name, users.last_name, users.profile_image FROM users INNER JOIN role ON role.id = users.role_id WHERE users.username = :username";
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
@@ -24,10 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['username'] = $user['username'];
             $_SESSION['first_name'] = $user['first_name'];
             $_SESSION['last_name'] = $user['last_name'];
+            $_SESSION['profile_image'] = $user['profile_image'];
             $_SESSION['role'] = $user['role'];
 
             // Redirect based on role
-            if ($user['role'] == 'admin') {
+            if ($user['role'] == Role::Administrator->value) {
                 header('Location: ../admin/dashboard.php');
             } else {
                 header('Location: ../user/user_interface.php');

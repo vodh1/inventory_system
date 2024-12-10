@@ -3,6 +3,7 @@ session_start();
 require_once '../classes/database.class.php';
 require_once '../classes/borrowing.class.php';
 require_once '../classes/equipment.class.php';
+require_once '../libs/enums.php';
 
 $conn = new Database();
 $borrowing = new Borrowing();
@@ -13,7 +14,7 @@ $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 $user_info = null;
 
 if ($user_id) {
-    $sql = "SELECT username, department, role FROM users WHERE id = :user_id";
+    $sql = "SELECT users.username, department.name AS department, role.name AS role FROM users INNER JOIN role ON role.id = users.role_id INNER JOIN department ON department.id = users.department_id WHERE users.id = :user_id";
     $stmt = $conn->connect()->prepare($sql);
     $stmt->bindParam(':user_id', $user_id);
     $stmt->execute();
@@ -24,7 +25,7 @@ if ($user_id) {
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset=" UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Borrowings - Equipment Borrowing System</title>
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -37,6 +38,7 @@ if ($user_id) {
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -48,29 +50,29 @@ if ($user_id) {
         }
     </script>
     <style>
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: #b90303 !important;
-            color: white !important;
-            border: none !important;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-            background: #a00202 !important;
-            color: white !important;
-            border: none !important;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            border: none !important;
-            border-radius: 0.5rem;
-            padding: 0.5rem 1rem;
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 1rem;
         }
 
         .dataTables_wrapper .dataTables_length select,
         .dataTables_wrapper .dataTables_filter input {
-            border-radius: 0.5rem;
             padding: 0.5rem;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #dc2626 !important;
+            color: white !important;
+            border: 1px solid #dc2626;
         }
     </style>
 </head>
@@ -92,14 +94,6 @@ if ($user_id) {
                     <input type="text" placeholder="Search borrowings..." class="w-full py-2 lg:py-3 px-4 pl-10 border border-gray-200 rounded-lg text-sm">
                 </div>
 
-                <!-- Profile - Hidden on mobile -->
-                <div class="hidden lg:flex items-center gap-3">
-                    <img src="assets/profile-1.png" alt="Profile" class="w-10 h-10 rounded-full">
-                    <div>
-                        <span class="block text-gray-700"><?php echo $user_info ? $user_info['username'] : 'Guest'; ?></span>
-                        <small class="text-sm text-gray-600"><?php echo $user_info ? $user_info['department'] : 'Not available'; ?></small>
-                    </div>
-                </div>
             </div>
 
             <!-- Stats -->
@@ -119,7 +113,7 @@ if ($user_id) {
             </div>
 
             <!-- Borrowings Table -->
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden py-4 px-4">
                 <table id="borrowingsTable" class="w-full">
                     <thead>
                         <tr>

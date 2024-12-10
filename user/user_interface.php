@@ -4,6 +4,7 @@ require_once '../classes/database.class.php';
 require_once '../classes/equipment.class.php';
 require_once '../user/borrow_modal.php';
 require_once '../user/details_modal.php';
+require_once '../libs/enums.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -19,7 +20,7 @@ $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 $user_info = null;
 
 if ($user_id) {
-    $sql = "SELECT username, department, role, profile_image FROM users WHERE id = :user_id";
+    $sql = "SELECT users.username, department.name AS department, role.name AS role, users.profile_image FROM users INNER JOIN department ON department.id = users.department_id INNER JOIN role ON role.id = users.role_id WHERE users.id = :user_id";
     $stmt = $conn->connect()->prepare($sql);
     $stmt->bindParam(':user_id', $user_id);
     $stmt->execute();
@@ -121,6 +122,12 @@ $equipment_list = $equipment->showAll('', '', $offset, $items_per_page);
                     <input type="text" id="searchInput" placeholder="Search equipment..."
                         class="w-full py-2 lg:py-3 px-4 pl-10 border border-gray-200 rounded-lg text-sm">
                     <button id="searchButton" class="ml-2 px-4 py-2 bg-primary text-white rounded-lg">Search</button>
+                    <select id="categoryFilter" class="flex-1 lg:flex-none px-5 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <option value="">All Categories</option>
+                        <?php foreach ($categories as $category): ?>
+                            <option value="<?php echo $category['id']; ?>"><?php echo $category['name']; ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <!--<!-- Notification Bell with Dropdown -->
@@ -156,14 +163,6 @@ $equipment_list = $equipment->showAll('', '', $offset, $items_per_page);
                 <!--    </div>-->
                 <!--</div>-->
 
-                <!-- Profile - Hidden on mobile -->
-                <div class="hidden lg:flex items-center gap-3">
-                    <img src="<?php echo $user_info ? $user_info['profile_image'] : 'assets/profile-1.png'; ?>" alt="Profile" class="w-10 h-10 rounded-full">
-                    <div>
-                        <span class="block text-gray-700"><?php echo $user_info ? $user_info['username'] : 'Guest'; ?></span>
-                        <small class="text-sm text-gray-600"><?php echo $user_info ? $user_info['department'] : 'Not available'; ?></small>
-                    </div>
-                </div>
             </div>
 
             <!-- Main Content Area -->
@@ -173,18 +172,6 @@ $equipment_list = $equipment->showAll('', '', $offset, $items_per_page);
                         <div>
                             <h2 class="text-2xl lg:text-3xl font-semibold text-gray-800 mb-1">Available Equipment</h2>
                             <p class="text-gray-500">Browse and borrow available equipment</p>
-                        </div>
-
-                        <div class="flex gap-2 w-full lg:w-auto">
-                            <button class="flex-1 lg:flex-none px-5 py-2.5 border border-gray-200 rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors">
-                                All Items
-                            </button>
-                            <select id="categoryFilter" class="flex-1 lg:flex-none px-5 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                <option value="">All Categories</option>
-                                <?php foreach ($categories as $category): ?>
-                                    <option value="<?php echo $category['id']; ?>"><?php echo $category['name']; ?></option>
-                                <?php endforeach; ?>
-                            </select>
                         </div>
                     </div>
 

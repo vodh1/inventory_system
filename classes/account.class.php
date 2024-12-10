@@ -1,7 +1,8 @@
 <?php
 require_once 'Database.class.php';
 
-class Account {
+class Account
+{
     private $db;
     public $id;
     public $first_name;
@@ -17,19 +18,36 @@ class Account {
     public $username;
     public $profile_image;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->db = new Database();
     }
 
-    public function fetchAccounts() {   
-        $sql = "SELECT * FROM users";
+    public function fetchAccounts()
+    {
+        $sql = "SELECT users.*, role.name AS role, department.name AS department FROM users INNER JOIN role ON users.role_id = role.id INNER JOIN department ON users.department_id = department.id";
         $result = $this->db->connect()->query($sql);
         return $result->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function uploadProfileImage($file) {
+    public function fetchRoles()
+    {
+        $sql = "SELECT * FROM role";
+        $result = $this->db->connect()->query($sql);
+        return $result->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function fetchDepartments()
+    {
+        $sql = "SELECT * FROM department";
+        $result = $this->db->connect()->query($sql);
+        return $result->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function uploadProfileImage($file)
+    {
         if (empty($file) || empty($file['name'])) {
-            return 'assets/default-profile.png';
+            return '../assets/default-profile.png';
         }
 
         $target_dir = "uploads/profile_images/";
@@ -62,7 +80,8 @@ class Account {
         }
     }
 
-    public function add() {
+    public function add()
+    {
         $required_fields = ['first_name', 'middle_name', 'last_name', 'age', 'address', 'email', 'role', 'department', 'password', 'contact_number', 'username'];
         foreach ($required_fields as $field) {
             if (empty($this->$field)) {
@@ -73,7 +92,7 @@ class Account {
         try {
             $profile_image = isset($_FILES['profile_image']) ? $this->uploadProfileImage($_FILES['profile_image']) : 'assets/default-profile.png';
 
-            $sql = "INSERT INTO users (first_name, middle_name, last_name, age, address, email, role, department, password, contact_number, username, profile_image) VALUES (:first_name, :middle_name, :last_name, :age, :address, :email, :role, :department, :password, :contact_number, :username, :profile_image)";
+            $sql = "INSERT INTO users (first_name, middle_name, last_name, age, address, email, role_id, department_id, password, contact_number, username, profile_image) VALUES (:first_name, :middle_name, :last_name, :age, :address, :email, :role, :department, :password, :contact_number, :username, :profile_image)";
             $stmt = $this->db->connect()->prepare($sql);
             $stmt->bindParam(':first_name', $this->first_name);
             $stmt->bindParam(':middle_name', $this->middle_name);
@@ -98,10 +117,11 @@ class Account {
         }
     }
 
-    public function update() {
+    public function update()
+    {
         try {
-            $profile_image = isset($_FILES['profile_image']) && !empty($_FILES['profile_image']['name']) 
-                ? $this->uploadProfileImage($_FILES['profile_image']) 
+            $profile_image = isset($_FILES['profile_image']) && !empty($_FILES['profile_image']['name'])
+                ? $this->uploadProfileImage($_FILES['profile_image'])
                 : $this->profile_image;
 
             $sql = "UPDATE users SET 
@@ -111,8 +131,8 @@ class Account {
                     age = :age, 
                     address = :address, 
                     email = :email, 
-                    role = :role, 
-                    department = :department, 
+                    role_id = :role, 
+                    department_id = :department, 
                     password = :password, 
                     contact_number = :contact_number, 
                     username = :username, 
@@ -140,11 +160,12 @@ class Account {
         }
     }
 
-    public function delete($user_id) {
+    public function delete($user_id)
+    {
         try {
             $this->db->connect()->beginTransaction();
 
-            $delete_borrowings_sql = "DELETE FROM borrowings WHERE borrower_name = (SELECT username FROM users WHERE id = ?)";
+            $delete_borrowings_sql = "DELETE FROM borrowings WHERE borrower_username = (SELECT username FROM users WHERE id = ?)";
             $delete_borrowings_stmt = $this->db->connect()->prepare($delete_borrowings_sql);
             $delete_borrowings_stmt->execute([$user_id]);
 
@@ -160,7 +181,8 @@ class Account {
         }
     }
 
-    public function fetchRecord($id) {
+    public function fetchRecord($id)
+    {
         $sql = "SELECT * FROM users WHERE id = :id";
         $stmt = $this->db->connect()->prepare($sql);
         $stmt->bindParam(':id', $id);
@@ -168,4 +190,3 @@ class Account {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
-?>

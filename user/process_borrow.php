@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Use the logged-in user's name (assuming it's stored in the session)
     if (isset($_SESSION['username'])) {
-        $borrower_name = $_SESSION['username'];
+        $borrower_username = $_SESSION['username'];
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Borrower name not found in session.']);
         exit();
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $borrowing = new Borrowing();
         $result = $borrowing->submitBorrowRequest(
             $equipment_id,
-            $borrower_name,
+            $borrower_username,
             $borrow_date,
             $return_date,
             $purpose,
@@ -38,9 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo json_encode(['status' => 'error', 'message' => $result['message']]);
         }
         exit();
-
     } catch (Exception $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
 }
-?>

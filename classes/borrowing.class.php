@@ -1,28 +1,33 @@
 <?php
 require_once 'database.class.php';
+require_once '../libs/enums.php';
 
-class Borrowing {
+class Borrowing
+{
     private $db;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->db = new Database();
     }
 
-    public function fetchBorrowRequests() {
+    public function fetchBorrowRequests()
+    {
         $sql = "SELECT b.*, e.name AS equipment_name, eu.unit_code, u.department, c.name AS category_name 
                 FROM borrowings b 
                 JOIN equipment_units eu ON b.unit_id = eu.id 
                 JOIN equipment e ON eu.equipment_id = e.id 
-                JOIN users u ON b.borrower_name = u.username 
+                JOIN users u ON b.borrower_username = u.username 
                 JOIN categories c ON e.category_id = c.id 
                 ORDER BY b.created_at DESC";
-    
+
         $stmt = $this->db->connect()->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function submitBorrowRequest($equipment_id, $borrower_name, $borrow_date, $return_date, $purpose, $unit_code) {
+    public function submitBorrowRequest($equipment_id, $borrower_username, $borrow_date, $return_date, $purpose, $unit_code)
+    {
         try {
             $pdo = $this->db->connect();
 
@@ -56,28 +61,18 @@ class Borrowing {
             $equipment_name = $equipment_result['name'];
 
             // Insert borrowing record with status 'pending'
-            $sql = "INSERT INTO borrowings (unit_id, borrower_name, borrow_date, return_date, purpose, status, approval_status, created_at, equipment_name, unit_code) 
-                    VALUES (:unit_id, :borrower_name, :borrow_date, :return_date, :purpose, 'pending', 'pending', NOW(), :equipment_name, :unit_code)";
-            
+            $sql = "INSERT INTO borrowings (unit_id, borrower_username, borrow_date, return_date, purpose, status) 
+                    VALUES (:unit_id, :borrower_username, :borrow_date, :return_date, :purpose, 'pending')";
+
             $stmt = $pdo->prepare($sql);
             $stmt->bindParam(':unit_id', $unit_id);
-            $stmt->bindParam(':borrower_name', $borrower_name);
+            $stmt->bindParam(':borrower_username', $borrower_username);
             $stmt->bindParam(':borrow_date', $borrow_date);
             $stmt->bindParam(':return_date', $return_date);
             $stmt->bindParam(':purpose', $purpose);
-            $stmt->bindParam(':equipment_name', $equipment_name);
-            $stmt->bindParam(':unit_code', $unit_code);
-            
+
             if (!$stmt->execute()) {
                 throw new Exception("Error inserting borrowing record: " . $stmt->errorInfo()[2]);
-            }
-
-            // Decrement the available units count
-            $update_available_units_sql = "UPDATE equipment SET available_units = available_units - 1 WHERE id = :equipment_id";
-            $update_available_units_stmt = $pdo->prepare($update_available_units_sql);
-            $update_available_units_stmt->bindParam(':equipment_id', $equipment_id);
-            if (!$update_available_units_stmt->execute()) {
-                throw new Exception("Error executing update available units query: " . $update_available_units_stmt->errorInfo()[2]);
             }
 
             // Commit transaction
@@ -92,7 +87,8 @@ class Borrowing {
         }
     }
 
-    public function approveBorrowRequest($request_id) {
+    public function approveBorrowRequest($request_id)
+    {
         try {
             $pdo = $this->db->connect();
 
@@ -112,30 +108,34 @@ class Borrowing {
 
             $unit_id = $fetch_unit_result['unit_id'];
 
+            $borrow_status = (string)BorrowStatus::Active->value;
             // Update the status of the borrowing record to 'approved'
-            $update_borrowing_sql = "UPDATE borrowings SET approval_status = 'approved', status = 'active' WHERE id = :request_id";
+            $update_borrowing_sql = "UPDATE borrowings SET status = :status WHERE id = :request_id";
             $update_borrowing_stmt = $pdo->prepare($update_borrowing_sql);
             $update_borrowing_stmt->bindParam(':request_id', $request_id);
+            $update_borrowing_stmt->bindParam(':status', $borrow_status);
             if (!$update_borrowing_stmt->execute()) {
                 throw new Exception("Error executing update borrowing status query: " . $update_borrowing_stmt->errorInfo()[2]);
             }
 
+            $unit_status = UnitStatus::Borrowed->value;
             // Update equipment unit status to 'borrowed'
-            $update_sql = "UPDATE equipment_units SET status = 'borrowed' WHERE id = :unit_id";
+            $update_sql = "UPDATE equipment_units SET status = :status WHERE id = :unit_id";
             $update_stmt = $pdo->prepare($update_sql);
+            $update_stmt->bindParam(':status', $unit_status);
             $update_stmt->bindParam(':unit_id', $unit_id);
             if (!$update_stmt->execute()) {
                 throw new Exception("Error updating equipment unit status: " . $update_stmt->errorInfo()[2]);
             }
 
             // Add a notification
-            $notification_sql = "INSERT INTO notifications (message, created_at) VALUES (:message, NOW())";
-            $notification_stmt = $pdo->prepare($notification_sql);
-            $message = "Borrow request #" . $request_id . " has been approved.";
-            $notification_stmt->bindParam(':message', $message);
-            if (!$notification_stmt->execute()) {
-                throw new Exception("Error inserting notification: " . $notification_stmt->errorInfo()[2]);
-            }
+            // $notification_sql = "INSERT INTO notifications (message, created_at) VALUES (:message, NOW())";
+            // $notification_stmt = $pdo->prepare($notification_sql);
+            // $message = "Borrow request #" . $request_id . " has been approved.";
+            // $notification_stmt->bindParam(':message', $message);
+            // if (!$notification_stmt->execute()) {
+            //     throw new Exception("Error inserting notification: " . $notification_stmt->errorInfo()[2]);
+            // }
 
             // Commit transaction
             $pdo->commit();
@@ -149,7 +149,8 @@ class Borrowing {
         }
     }
 
-    public function rejectBorrowRequest($request_id) {
+    public function rejectBorrowRequest($request_id)
+    {
         try {
             $pdo = $this->db->connect();
 
@@ -186,13 +187,13 @@ class Borrowing {
             }
 
             // Add a notification
-            $notification_sql = "INSERT INTO notifications (message, created_at) VALUES (:message, NOW())";
-            $notification_stmt = $pdo->prepare($notification_sql);
-            $message = "Borrow request #" . $request_id . " has been rejected.";
-            $notification_stmt->bindParam(':message', $message);
-            if (!$notification_stmt->execute()) {
-                throw new Exception("Error inserting notification: " . $notification_stmt->errorInfo()[2]);
-            }
+            // $notification_sql = "INSERT INTO notifications (message, created_at) VALUES (:message, NOW())";
+            // $notification_stmt = $pdo->prepare($notification_sql);
+            // $message = "Borrow request #" . $request_id . " has been rejected.";
+            // $notification_stmt->bindParam(':message', $message);
+            // if (!$notification_stmt->execute()) {
+            //     throw new Exception("Error inserting notification: " . $notification_stmt->errorInfo()[2]);
+            // }
 
             // Commit transaction
             $pdo->commit();
@@ -206,7 +207,8 @@ class Borrowing {
         }
     }
 
-    public function getTransactionById($id) {
+    public function getTransactionById($id)
+    {
         try {
             $sql = "SELECT b.*, e.name AS equipment_name, eu.unit_code, u.department, 
                           u.email AS borrower_email, u.contact_number AS borrower_contact,
@@ -215,28 +217,26 @@ class Borrowing {
                    FROM borrowings b 
                    JOIN equipment_units eu ON b.unit_id = eu.id 
                    JOIN equipment e ON eu.equipment_id = e.id 
-                   JOIN users u ON b.borrower_name = u.username 
+                   JOIN users u ON b.borrower_username = u.username 
                    JOIN categories c ON e.category_id = c.id 
                    WHERE b.id = :id";
-            
+
             $stmt = $this->db->connect()->prepare($sql);
             $stmt->bindParam(':id', $id);
             $stmt->execute();
-            
+
             $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if ($transaction) {
                 // Format dates
                 $transaction['borrow_date'] = date('M d, Y', strtotime($transaction['borrow_date']));
                 $transaction['return_date'] = date('M d, Y', strtotime($transaction['return_date']));
                 $transaction['created_at'] = date('M d, Y h:i A', strtotime($transaction['created_at']));
             }
-            
+
             return $transaction;
         } catch (Exception $e) {
             return null;
         }
     }
 }
-
-?>
