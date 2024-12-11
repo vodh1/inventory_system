@@ -202,7 +202,7 @@ $(document).ready(function () {
 			.on('keyup', function () {
 				equipmentTable.search(this.value).draw();
 			});
-	}
+		}
 
 	// Function to fetch equipment details and populate the edit modal
 	function fetchEquipmentDetails(equipmentId) {

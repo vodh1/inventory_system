@@ -318,6 +318,12 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                                 });
                             }
                         });
+                        $('#custom-search')
+                            .off('keyup')
+                            .on('keyup', function() {
+                                transactionsTable.search(this.value).draw();
+                            });
+
                     }
 
 
