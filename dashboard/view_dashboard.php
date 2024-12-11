@@ -99,7 +99,7 @@
                     <?php foreach ($recent_activities as $activity): ?>
                         <tr class="border-b dark:border-gray-700">
                             <td class="py-3 text-black dark:text-white"><?php echo htmlspecialchars($activity['equipment_name']); ?></td>
-                            <td class="py-3 text-black dark:text-white"><?php echo htmlspecialchars($activity['borrower_username']); ?></td>
+                            <td class="py-3 text-black dark:text-white"><?php echo htmlspecialchars($activity['borrower_name']); ?></td>
                             <td class="py-3 text-black dark:text-white"><?php echo htmlspecialchars($activity['department']); ?></td>
                             <td class="py-3">
                                 <span class="px-2 py-1 rounded-full text-xs <?php echo $activity['activity_type'] === 'borrowed' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'; ?>">

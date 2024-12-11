@@ -14,8 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $unit_code = $_POST['unit']; // Get the selected unit number
 
     // Use the logged-in user's name (assuming it's stored in the session)
-    if (isset($_SESSION['username'])) {
-        $borrower_username = $_SESSION['username'];
+    if (isset($_SESSION['user_id'])) {
+        $borrower_user_id = $_SESSION['user_id'];
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Borrower name not found in session.']);
         exit();
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $borrowing = new Borrowing();
         $result = $borrowing->submitBorrowRequest(
             $equipment_id,
-            $borrower_username,
+            $borrower_user_id,
             $borrow_date,
             $return_date,
             $purpose,

@@ -87,7 +87,7 @@ if ($user_id) {
 
         <!-- Main Content -->
         <div class="flex-1 ml-[16.2rem] p-4 lg:p-5 pb-20 lg:pb-5 w-full lg:max-w-[calc(100%-16rem)]">
-            <!-- Navigation -->
+            <!-- Navigation 
             <div class="flex items-center gap-5 p-4 lg:p-5 bg-white rounded-lg shadow-sm sticky top-0 z-40 mb-8">
                 <div class="flex-1 relative">
                     <i class='bx bx-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'></i>
@@ -95,7 +95,7 @@ if ($user_id) {
                 </div>
 
             </div>
-
+-->
             <!-- Stats -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div class="bg-white p-4 rounded-lg shadow-sm">
@@ -120,7 +120,9 @@ if ($user_id) {
                             <th>Equipment</th>
                             <th>Status</th>
                             <th>Borrow Date</th>
+                            <th>Expected Return Date</th>
                             <th>Return Date</th>
+                            <th>Purpose of Borrowing</th>
                             <th>Time Remaining</th>
                         </tr>
                     </thead>
@@ -202,6 +204,10 @@ if ($user_id) {
 
             // Update borrowings list
             data.borrowings.forEach(borrowing => {
+                let dueStatus = '-';
+                if (borrowing.status === 'active') {
+                    dueStatus = getTimeRemaining(borrowing.expected_return_date);
+                }
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
@@ -224,8 +230,10 @@ if ($user_id) {
                         </span>
                     </td>
                     <td>${new Date(borrowing.borrow_date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
-                    <td>${new Date(borrowing.return_date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
-                    <td class="${getTimeRemainingClass(borrowing.return_date)}">${getTimeRemaining(borrowing.return_date)}</td>
+                    <td>${new Date(borrowing.expected_return_date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
+                    <td>${ borrowing.return_date ? new Date(borrowing.return_date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}</td>
+                    <td>${borrowing.purpose}</td>
+                    <td class="${getTimeRemainingClass(borrowing.expected_return_date)}">${dueStatus}</td>
                 `;
                 borrowingsList.appendChild(row);
             });
@@ -282,13 +290,19 @@ if ($user_id) {
             const now = new Date();
             const returnDateObj = new Date(returnDate);
             const days = Math.ceil((returnDateObj - now) / (1000 * 60 * 60 * 24));
-            return days > 0 ? `${days} days` : 'Overdue';
+            if (days > 0) {
+                return `${days} days remaining`;
+            } else if (days == 0) {
+                return 'Due Today';
+            } else {
+                return `${Math.abs(days)} days overdue`;
+            }
         }
 
         function getTimeRemainingClass(returnDate) {
             const now = new Date();
             const returnDateObj = new Date(returnDate);
-            return now > returnDateObj ? 'text-red-600' : 'text-green-600';
+            return now >= returnDateObj ? 'text-red-600' : 'text-green-600';
         }
 
         // Initial fetch

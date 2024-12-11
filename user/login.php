@@ -31,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Redirect based on role
             if ($user['role'] == Role::Administrator->value) {
                 header('Location: ../admin/dashboard.php');
+            } elseif ($user['role'] == Role::Staff->value) {
+                header('Location: ../admin/transaction.php');
             } else {
                 header('Location: ../user/user_interface.php');
             }

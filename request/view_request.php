@@ -38,7 +38,7 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($request['borrower_username']) ?></div>
+                                <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($request['borrower_name']) ?></div>
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap">
                                 <span class="text-sm text-gray-900"><?= htmlspecialchars($request['department']) ?></span>

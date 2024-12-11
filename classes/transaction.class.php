@@ -36,18 +36,18 @@ class Transaction
         }
 
         if ($search_query) {
-            $conditions[] = "(e.name LIKE ? OR b.borrower_username LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
+            $conditions[] = "(e.name LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
             $search_param = "%{$search_query}%";
-            $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param]);
+            $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param, $search_param]);
             $types .= 'ssss';
         }
 
-        $sql = "SELECT b.*, e.name AS equipment_name, e.image_path, eu.unit_code, eu.status as unit_status, 
+        $sql = "SELECT b.*, CONCAT(u.first_name, ' ', u.last_name) AS borrower_name e.name AS equipment_name, e.image_path, eu.unit_code, eu.status as unit_status, 
                        u.department, c.name AS category_name
                 FROM borrowings b 
                 JOIN equipment_units eu ON b.unit_id = eu.id 
                 JOIN equipment e ON eu.equipment_id = e.id 
-                LEFT JOIN users u ON b.borrower_username = u.username
+                LEFT JOIN users u ON b.user_id = u.id
                 LEFT JOIN categories c ON e.category_id = c.id";
 
         if (!empty($conditions)) {
@@ -99,17 +99,17 @@ class Transaction
         }
 
         if ($search_query) {
-            $conditions[] = "(e.name LIKE ? OR b.borrower_username LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
+            $conditions[] = "(e.name LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
             $search_param = "%{$search_query}%";
-            $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param]);
+            $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param, $search_param]);
         }
 
-        $sql = "SELECT b.*, e.name AS equipment_name, e.image_path, eu.unit_code, eu.status as unit_status, 
+        $sql = "SELECT b.*, CONCAT(u.first_name, ' ', u.last_name) AS borrower_name, e.name AS equipment_name, e.image_path, eu.unit_code, eu.status as unit_status, 
                        department.name AS department, c.name AS category_name
                 FROM borrowings b 
                 JOIN equipment_units eu ON b.unit_id = eu.id 
                 JOIN equipment e ON eu.equipment_id = e.id 
-                LEFT JOIN users u ON b.borrower_username = u.username
+                LEFT JOIN users u ON b.user_id = u.id
                 JOIN department ON department.id = u.department_id
                 JOIN categories c ON e.category_id = c.id";
 
@@ -160,9 +160,9 @@ class Transaction
         }
 
         if ($search_query) {
-            $conditions[] = "(e.name LIKE ? OR b.borrower_username LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
+            $conditions[] = "(e.name LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? LIKE ? OR eu.unit_code LIKE ? OR u.department LIKE ?)";
             $search_param = "%{$search_query}%";
-            $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param]);
+            $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param, $search_param]);
             $types .= 'ssss';
         }
 
@@ -170,7 +170,7 @@ class Transaction
                 FROM borrowings b 
                 JOIN equipment_units eu ON b.unit_id = eu.id
                 JOIN equipment e ON eu.equipment_id = e.id
-                JOIN users u ON b.borrower_username = u.username";
+                JOIN users u ON b.user_id = u.id";
 
         if (!empty($conditions)) {
             $sql .= " WHERE " . implode(" AND ", $conditions);

@@ -165,7 +165,7 @@ class Account
         try {
             $this->db->connect()->beginTransaction();
 
-            $delete_borrowings_sql = "DELETE FROM borrowings WHERE borrower_username = (SELECT username FROM users WHERE id = ?)";
+            $delete_borrowings_sql = "DELETE FROM borrowings WHERE user_id = (SELECT id FROM users WHERE id = ?)";
             $delete_borrowings_stmt = $this->db->connect()->prepare($delete_borrowings_sql);
             $delete_borrowings_stmt->execute([$user_id]);
 

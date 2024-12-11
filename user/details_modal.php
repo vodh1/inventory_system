@@ -120,7 +120,7 @@ function displayDetailsModal()
                     document.getElementById('borrowedCount').textContent = data.counts.borrowed;
                     document.getElementById('pendingCount').textContent = data.counts.pending;
                     document.getElementById('totalUnits').textContent =
-                        `Total Units: ${data.counts.available + data.counts.borrowed + data.counts.maintenance + data.counts.pending}`;
+                        `Total Units: ${data.counts.available + data.counts.borrowed + data.counts.maintenance}`;
 
                     const tbody = document.getElementById('unitDetailsBody');
                     tbody.innerHTML = '';

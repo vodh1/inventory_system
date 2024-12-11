@@ -22,7 +22,7 @@
             if ($url == str_contains($url, "transaction.php")) {
             ?>
                 <input type="text" id="custom-search" placeholder="Search equipment..."
-                    class="w-full py-2 lg:py-3 px-4 pl-10 border border-gray-200 rounded-lg text-sm">
+                    name="search" class="w-full py-2 lg:py-3 px-4 pl-10 border border-gray-200 rounded-lg text-sm">
                 <i class="fas fa-search absolute left-3 text-gray-400"></i>
             <?php } ?>
         </div>

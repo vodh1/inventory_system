@@ -15,16 +15,16 @@ $category_id = $_POST['category_id'];
 $search_value = $_POST['search_value'];
 
 // Build the SQL query
-$sql = "SELECT b.*, e.name AS equipment_name, eu.unit_code, u.department, c.name AS category_name 
+$sql = "SELECT b.*, CONCAT(u.first_name, ' ', u.last_name) AS borrower_name, e.name AS equipment_name, eu.unit_code, u.department, c.name AS category_name 
         FROM borrowings b 
         JOIN equipment_units eu ON b.unit_id = eu.id 
         JOIN equipment e ON eu.equipment_id = e.id 
-        JOIN users u ON b.borrower_username = u.username 
+        JOIN users u ON b.user_id = u.id 
         JOIN categories c ON e.category_id = c.id";
 
 $where = [];
 if (!empty($search_value)) {
-    $where[] = "b.borrower_username LIKE :search OR e.name LIKE :search OR eu.unit_code LIKE :search OR u.department LIKE :search OR c.name LIKE :search";
+    $where[] = "b.user_id LIKE :search OR e.name LIKE :search OR eu.unit_code LIKE :search OR u.department LIKE :search OR c.name LIKE :search";
 }
 if (!empty($category_id)) {
     $where[] = "e.category_id = :category_id";
@@ -59,7 +59,7 @@ $total_records = $total_records_result->fetch(PDO::FETCH_ASSOC)['total'];
 $filtered_records_sql = "SELECT COUNT(*) as total FROM borrowings b 
                          JOIN equipment_units eu ON b.unit_id = eu.id 
                          JOIN equipment e ON eu.equipment_id = e.id 
-                         JOIN users u ON b.borrower_username = u.username 
+                         JOIN users u ON b.user_id = u.id 
                          JOIN categories c ON e.category_id = c.id";
 
 if (!empty($where)) {
@@ -90,7 +90,7 @@ foreach ($borrow_requests as $row) {
         "id" => $row['id'],
         "equipment_name" => $row['equipment_name'],
         "unit_code" => $row['unit_code'],
-        "borrower_username" => $row['borrower_username'],
+        "borrower_name" => $row['borrower_name'],
         "department" => $row['department'],
         "borrow_date" => $row['borrow_date'],
         "return_date" => $row['return_date'],

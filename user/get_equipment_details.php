@@ -49,14 +49,15 @@ try {
     }
 
     // Get unit details with error checking
-    $stmt = $conn->prepare("
+    $stmt = $conn->prepare("    
         SELECT eu.unit_code, eu.status,
-               b.borrower_username, b.borrow_date, 
+               CONCAT(u.first_name,' ', u.last_name) AS borrower_name, b.borrow_date, 
                DATE_ADD(b.borrow_date, INTERVAL :max_borrow_days DAY) as expected_return,
                b.status as borrow_status,
                (SELECT COUNT(*) FROM borrowings WHERE unit_id = eu.id AND status = 'pending') as pending_count
         FROM equipment_units eu
-        LEFT JOIN borrowings b ON eu.id = b.unit_id AND b.status IN ('active', 'pending')
+        LEFT JOIN borrowings b ON eu.id = b.unit_id AND b.status IN ('active', 'pending', 'returned')
+        LEFT JOIN users u ON b.user_id = u.id
         WHERE eu.equipment_id = :equipment_id
     ");
 
@@ -78,9 +79,12 @@ try {
 
     foreach ($units_result as $unit) {
         $status = $unit['status'];
-        if ($unit['borrow_status'] == 'pending') {
-            $status = 'pending';
-        } elseif ($unit['borrow_status'] == 'active') {
+        if ($unit['borrow_status'] == BorrowStatus::Pending->value) {
+            if ($unit['status'] == UnitStatus::Available->value) {
+                $counts[$status]++;
+            }
+            $status = BorrowStatus::Pending->value;
+        } elseif ($unit['borrow_status'] == BorrowStatus::Active->value) {
             $status = 'borrowed';
         }
 
@@ -89,7 +93,7 @@ try {
         $units[] = [
             'unit_code' => $unit['unit_code'],
             'status' => $status,
-            'borrower' => $unit['borrower_username'],
+            'borrower' => $unit['borrower_name'],
             'date_borrowed' => $unit['borrow_date'] ?
                 date('M d, Y', strtotime($unit['borrow_date'])) : null,
             'expected_return' => $unit['expected_return'] ?

@@ -103,6 +103,8 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                         onclick="filterTransactions('pending')">Pending</button>
                     <button class="px-5 py-2 rounded-lg <?php echo $status_filter == 'returned' ? 'bg-red-700 text-white' : 'border border-gray-200 hover:bg-gray-50'; ?>"
                         onclick="filterTransactions('returned')">Returned</button>
+                    <button class="px-5 py-2 rounded-lg <?php echo $status_filter == 'rejected' ? 'bg-red-700 text-white' : 'border border-gray-200 hover:bg-gray-50'; ?>"
+                        onclick="filterTransactions('rejected')">Rejected</button>
                 </div>
                 <div class="flex gap-3 flex-wrap">
                     <input type="date" id="startDate" class="px-3 py-2 border border-gray-200 rounded-lg" value="<?php echo $start_date; ?>">
@@ -125,7 +127,9 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Borrower</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Borrow Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expected Return Date</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -148,7 +152,7 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($transaction['borrower_username']) ?></div>
+                                        <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($transaction['borrower_name']) ?></div>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         <span class="text-sm text-gray-900"><?= htmlspecialchars($transaction['department']) ?></span>
@@ -160,9 +164,18 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         <div class="text-sm text-gray-900">
-                                            <?= date('M d, Y', strtotime($transaction['return_date'])) ?>
+                                            <?= date('M d, Y', strtotime($transaction['expected_return_date'])) ?>
                                         </div>
                                     </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">
+                                            <?= ($transaction['return_date']) ? date('M d, Y', strtotime($transaction['return_date'])) : '-' ?>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <p class="text-sm text-gray-900 max-w-[200px] truncate" title="<?= htmlspecialchars($transaction['purpose']) ?>">
+                                            <?= htmlspecialchars($transaction['purpose']) ?>
+                                        </p>
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         <?php
                                         $statusClasses = [
@@ -382,39 +395,39 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                     window.location.href = url.toString();
                 }
 
-                // Mobile menu toggle functionality
-                const menuToggle = document.getElementById('menuToggle');
-                const sidebar = document.getElementById('sidebar');
-                const mainContainer = document.getElementById('main-container');
+                // // Mobile menu toggle functionality
+                // const menuToggle = document.getElementById('menuToggle');
+                // const sidebar = document.getElementById('sidebar');
+                // const mainContainer = document.getElementById('main-container');
 
-                menuToggle.addEventListener('click', () => {
-                    sidebar.classList.toggle('-translate-x-full');
-                    mainContainer.classList.toggle('ml-0');
-                    mainContainer.classList.toggle('w-full');
-                });
+                // menuToggle.addEventListener('click', () => {
+                //     sidebar.classList.toggle('-translate-x-full');
+                //     mainContainer.classList.toggle('ml-0');
+                //     mainContainer.classList.toggle('w-full');
+                // });
 
-                // Add responsive classes for mobile
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.add('-translate-x-full');
-                    mainContainer.classList.add('ml-0', 'w-full');
-                    mainContainer.classList.remove('ml-64', 'w-[calc(100%-16rem)]');
-                    menuToggle.classList.remove('hidden');
-                }
+                // // Add responsive classes for mobile
+                // if (window.innerWidth <= 768) {
+                //     sidebar.classList.add('-translate-x-full');
+                //     mainContainer.classList.add('ml-0', 'w-full');
+                //     mainContainer.classList.remove('ml-64', 'w-[calc(100%-16rem)]');
+                //     menuToggle.classList.remove('hidden');
+                // }
 
-                // Handle resize
-                window.addEventListener('resize', () => {
-                    if (window.innerWidth <= 768) {
-                        sidebar.classList.add('-translate-x-full');
-                        mainContainer.classList.add('ml-0', 'w-full');
-                        mainContainer.classList.remove('ml-64', 'w-[calc(100%-16rem)]');
-                        menuToggle.classList.remove('hidden');
-                    } else {
-                        sidebar.classList.remove('-translate-x-full');
-                        mainContainer.classList.remove('ml-0', 'w-full');
-                        mainContainer.classList.add('ml-64', 'w-[calc(100%-16rem)]');
-                        menuToggle.classList.add('hidden');
-                    }
-                });
+                // // Handle resize
+                // window.addEventListener('resize', () => {
+                //     if (window.innerWidth <= 768) {
+                //         sidebar.classList.add('-translate-x-full');
+                //         mainContainer.classList.add('ml-0', 'w-full');
+                //         mainContainer.classList.remove('ml-64', 'w-[calc(100%-16rem)]');
+                //         menuToggle.classList.remove('hidden');
+                //     } else {
+                //         sidebar.classList.remove('-translate-x-full');
+                //         mainContainer.classList.remove('ml-0', 'w-full');x
+                //         mainContainer.classList.add('ml-64', 'w-[calc(100%-16rem)]');
+                //         menuToggle.classList.add('hidden');
+                //     }
+                // });
 
                 function openTransactionModal(transactionId) {
                     const modal = document.getElementById('transactionDetailsModal');
@@ -463,7 +476,7 @@ $transactions_result = $transaction->fetchAllTransactions($status_filter, $start
                                 <div>
                                     <h4 class="font-semibold mb-4">Borrower Information</h4>
                                     <div class="space-y-2">
-                                        <p><span class="text-gray-600">Name:</span> ${data.borrower_username}</p>
+                                        <p><span class="text-gray-600">Name:</span> ${data.borrower_name}</p>
                                         <p><span class="text-gray-600">Department:</span> ${data.department}</p>
                                         <p><span class="text-gray-600">Email:</span> ${data.borrower_email}</p>
                                         <p><span class="text-gray-600">Contact:</span> ${data.borrower_contact}</p>

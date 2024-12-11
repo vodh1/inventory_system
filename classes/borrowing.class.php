@@ -17,7 +17,7 @@ class Borrowing
                 FROM borrowings b 
                 JOIN equipment_units eu ON b.unit_id = eu.id 
                 JOIN equipment e ON eu.equipment_id = e.id 
-                JOIN users u ON b.borrower_username = u.username 
+                JOIN users u ON b.user_id = u.id 
                 JOIN categories c ON e.category_id = c.id 
                 ORDER BY b.created_at DESC";
 
@@ -26,7 +26,7 @@ class Borrowing
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function submitBorrowRequest($equipment_id, $borrower_username, $borrow_date, $return_date, $purpose, $unit_code)
+    public function submitBorrowRequest($equipment_id, $borrower_id, $borrow_date, $return_date, $purpose, $unit_code)
     {
         try {
             $pdo = $this->db->connect();
@@ -61,12 +61,12 @@ class Borrowing
             $equipment_name = $equipment_result['name'];
 
             // Insert borrowing record with status 'pending'
-            $sql = "INSERT INTO borrowings (unit_id, borrower_username, borrow_date, return_date, purpose, status) 
-                    VALUES (:unit_id, :borrower_username, :borrow_date, :return_date, :purpose, 'pending')";
+            $sql = "INSERT INTO borrowings (unit_id, user_id, borrow_date, expected_return_date, purpose, status) 
+                    VALUES (:unit_id, :user_id, :borrow_date, :return_date, :purpose, 'pending')";
 
             $stmt = $pdo->prepare($sql);
             $stmt->bindParam(':unit_id', $unit_id);
-            $stmt->bindParam(':borrower_username', $borrower_username);
+            $stmt->bindParam(':user_id', $borrower_id);
             $stmt->bindParam(':borrow_date', $borrow_date);
             $stmt->bindParam(':return_date', $return_date);
             $stmt->bindParam(':purpose', $purpose);
@@ -171,7 +171,7 @@ class Borrowing
             $unit_id = $fetch_unit_result['unit_id'];
 
             // Update the status of the borrowing record to 'rejected'
-            $update_borrowing_sql = "UPDATE borrowings SET approval_status = 'rejected', status = 'rejected' WHERE id = :request_id";
+            $update_borrowing_sql = "UPDATE borrowings SET status = 'rejected', status = 'rejected' WHERE id = :request_id";
             $update_borrowing_stmt = $pdo->prepare($update_borrowing_sql);
             $update_borrowing_stmt->bindParam(':request_id', $request_id);
             if (!$update_borrowing_stmt->execute()) {
@@ -217,7 +217,7 @@ class Borrowing
                    FROM borrowings b 
                    JOIN equipment_units eu ON b.unit_id = eu.id 
                    JOIN equipment e ON eu.equipment_id = e.id 
-                   JOIN users u ON b.borrower_username = u.username 
+                   JOIN users u ON b.user_id = u.id 
                    JOIN categories c ON e.category_id = c.id 
                    WHERE b.id = :id";
 
