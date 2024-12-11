@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 10, 2024 at 06:04 PM
+-- Generation Time: Dec 11, 2024 at 12:24 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -30,9 +30,10 @@ SET time_zone = "+00:00";
 CREATE TABLE `borrowings` (
   `id` int(11) NOT NULL,
   `unit_id` int(11) NOT NULL,
-  `borrower_username` varchar(255) NOT NULL,
+  `user_id` int(11) NOT NULL,
   `borrow_date` date NOT NULL,
-  `return_date` date NOT NULL,
+  `return_date` date DEFAULT NULL,
+  `expected_return_date` date NOT NULL,
   `purpose` text DEFAULT NULL,
   `status` enum('pending','active','returned','rejected') DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -43,8 +44,15 @@ CREATE TABLE `borrowings` (
 -- Dumping data for table `borrowings`
 --
 
-INSERT INTO `borrowings` (`id`, `unit_id`, `borrower_username`, `borrow_date`, `return_date`, `purpose`, `status`, `created_at`, `updated_at`) VALUES
-(95, 1234, 'andre', '2024-12-11', '2024-12-10', 'gimme ples', 'returned', '2024-12-10 11:03:21', '2024-12-10 12:51:56');
+INSERT INTO `borrowings` (`id`, `unit_id`, `user_id`, `borrow_date`, `return_date`, `expected_return_date`, `purpose`, `status`, `created_at`, `updated_at`) VALUES
+(95, 1234, 11, '2024-12-11', '2024-12-11', '2024-12-11', 'gimme ples', 'returned', '2024-12-10 11:03:21', '2024-12-11 07:59:21'),
+(96, 1233, 11, '2024-12-11', '2024-12-11', '2024-12-11', 'I want this', 'returned', '2024-12-11 05:36:19', '2024-12-11 09:21:31'),
+(97, 969, 11, '2024-12-11', '2024-12-11', '2024-12-11', 'I need this', 'returned', '2024-12-11 05:47:38', '2024-12-11 07:59:21'),
+(98, 1045, 11, '2024-12-11', '2024-12-11', '2024-12-11', 'HAMMER', 'returned', '2024-12-11 08:20:49', '2024-12-11 08:47:42'),
+(99, 1049, 11, '2024-12-11', '2024-12-11', '2024-12-11', 'HAMMER', 'returned', '2024-12-11 08:31:33', '2024-12-11 09:21:00'),
+(100, 970, 11, '2024-12-11', '2024-12-11', '2024-12-20', 'yes', 'returned', '2024-12-11 08:42:58', '2024-12-11 09:20:30'),
+(101, 969, 11, '2024-12-11', NULL, '2024-12-23', 'test', 'active', '2024-12-11 09:21:56', '2024-12-11 09:58:03'),
+(102, 969, 11, '2024-12-11', NULL, '2024-12-23', 'test', 'rejected', '2024-12-11 09:22:17', '2024-12-11 09:27:06');
 
 -- --------------------------------------------------------
 
@@ -113,7 +121,8 @@ INSERT INTO `equipment` (`id`, `category_id`, `name`, `description`, `max_borrow
 (32, 3, 'hammer', 'This is hammer', 12, '../uploads/equipment/default_image_equipment.png', '2024-12-10 07:22:09', '2024-12-10 10:58:12'),
 (33, 3, 'screwdriver', 'this is scredriver', 12, '../uploads/equipment/default_image_equipment.png', '2024-12-10 07:22:22', '2024-12-10 10:58:12'),
 (34, 1, 'projector', 'This is projector', 12, '../uploads/equipment/default_image_equipment.png', '2024-12-10 07:22:39', '2024-12-10 10:58:12'),
-(35, 3, 'Ballpen', 'This is Ballpen', 7, '../uploads/equipment/default_image_equipment.png', '2024-12-10 10:15:28', '2024-12-10 10:58:12');
+(35, 3, 'Ballpen', 'This is Ballpen', 7, '../uploads/equipment/default_image_equipment.png', '2024-12-10 10:15:28', '2024-12-10 10:58:12'),
+(36, 1, 'fridge', 'This is printer', 7, '../uploads/equipment/default_image_equipment.png', '2024-12-11 06:05:25', '2024-12-11 06:05:25');
 
 -- --------------------------------------------------------
 
@@ -134,7 +143,7 @@ CREATE TABLE `equipment_units` (
 --
 
 INSERT INTO `equipment_units` (`id`, `equipment_id`, `unit_code`, `status`, `created_at`) VALUES
-(969, 29, 'UNIT-029-001', 'available', '2024-12-09 18:07:47'),
+(969, 29, 'UNIT-029-001', 'borrowed', '2024-12-09 18:07:47'),
 (970, 29, 'UNIT-029-002', 'available', '2024-12-09 18:07:47'),
 (971, 29, 'UNIT-029-003', 'available', '2024-12-09 18:07:47'),
 (972, 29, 'UNIT-029-004', 'available', '2024-12-09 18:07:47'),
@@ -399,7 +408,8 @@ INSERT INTO `equipment_units` (`id`, `equipment_id`, `unit_code`, `status`, `cre
 (1231, 34, 'UNIT-034-032', 'available', '2024-12-10 07:22:39'),
 (1233, 35, 'UNIT-035-001', 'available', '2024-12-10 10:15:28'),
 (1234, 35, 'UNIT-035-002', 'available', '2024-12-10 10:15:28'),
-(1235, 35, 'UNIT-035-003', 'available', '2024-12-10 10:15:28');
+(1235, 35, 'UNIT-035-003', 'available', '2024-12-10 10:15:28'),
+(1333, 36, 'UNIT-036-001', 'available', '2024-12-11 06:05:25');
 
 -- --------------------------------------------------------
 
@@ -450,9 +460,12 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `department_id`, `role_id`, `username`, `password`, `email`, `first_name`, `middle_name`, `last_name`, `age`, `address`, `contact_number`, `profile_image`, `created_at`, `updated_at`) VALUES
-(11, 1, 1, 'andre', '1234', 'andrelee.cuyugan@gmail.com', 'Andre Lee', 'Rodriguez', 'Cuyugan', 22, 'Tetuan', '09009088', '', '2024-11-08 08:28:45', '2024-12-10 12:51:24'),
+(11, 1, 3, 'andre', '1234', 'andrelee.cuyugan@gmail.com', 'Andre Lee', 'Rodriguez', 'Cuyugan', 22, 'Tetuan', '09009088', '', '2024-11-08 08:28:45', '2024-12-10 19:02:00'),
 (12, 1, 3, 'Arman', 'asdzxc1!', 'yes@gmail.com', 'Arman', 'R', 'Cuyugan', 21, 'Tetuan', '09123456789', 'uploads/profile_images/6758077a22984.jpg', '2024-12-10 09:10:59', '2024-12-10 09:18:50'),
-(13, 1, 2, 'tester', 'qweASD123!@#', 'xt202000397@wmsu.edu.ph', 'Axeeeee', 'R', 'Ligma', 32, 'gdx', '09123456789', '../assets/default-profile.png', '2024-12-10 09:14:56', '2024-12-10 09:14:56');
+(13, 1, 2, 'tester', 'qweASD123!@#', 'xt202000397@wmsu.edu.ph', 'Axeeeee', 'R', 'Ligma', 32, 'gdx', '09123456789', '../assets/default-profile.png', '2024-12-10 09:14:56', '2024-12-10 09:14:56'),
+(16, 1, 1, 'tester123', 'test123!', 'yes@gmail.com', 'kalvin', 'alain', 'oijn', 24, 'tesyscsv', '09072656256', '../assets/default-profile.png', '2024-12-10 18:21:17', '2024-12-10 18:21:17'),
+(17, 1, 1, 'andre1', '1234', 'andrelee.cuyugan@gmail.com', 'Andre Lee', 'Rodriguez', 'Cuyugan', 22, 'Tetuan', '09009088', '', '2024-11-08 08:28:45', '2024-12-11 05:35:47'),
+(18, 1, 2, 'andre2', '1234', 'andrelee.cuyugan@gmail.com', 'Andre Lee', 'Rodriguez', 'Cuyugan', 22, 'Tetuan', '09009088', '', '2024-11-08 08:28:45', '2024-12-11 05:35:47');
 
 --
 -- Indexes for dumped tables
@@ -463,8 +476,8 @@ INSERT INTO `users` (`id`, `department_id`, `role_id`, `username`, `password`, `
 --
 ALTER TABLE `borrowings`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `borrower_name` (`borrower_username`),
-  ADD KEY `unit_id` (`unit_id`);
+  ADD KEY `unit_id` (`unit_id`),
+  ADD KEY `fk_user_id` (`user_id`);
 
 --
 -- Indexes for table `categories`
@@ -517,7 +530,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `borrowings`
 --
 ALTER TABLE `borrowings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=96;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -535,13 +548,13 @@ ALTER TABLE `department`
 -- AUTO_INCREMENT for table `equipment`
 --
 ALTER TABLE `equipment`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `equipment_units`
 --
 ALTER TABLE `equipment_units`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1333;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1334;
 
 --
 -- AUTO_INCREMENT for table `role`
@@ -553,7 +566,7 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- Constraints for dumped tables
@@ -563,8 +576,8 @@ ALTER TABLE `users`
 -- Constraints for table `borrowings`
 --
 ALTER TABLE `borrowings`
-  ADD CONSTRAINT `borrowings_ibfk_2` FOREIGN KEY (`borrower_username`) REFERENCES `users` (`username`),
-  ADD CONSTRAINT `borrowings_ibfk_3` FOREIGN KEY (`unit_id`) REFERENCES `equipment_units` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `borrowings_ibfk_3` FOREIGN KEY (`unit_id`) REFERENCES `equipment_units` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
 -- Constraints for table `equipment`
