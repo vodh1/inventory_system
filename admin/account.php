@@ -20,12 +20,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $account->contact_number = $_POST['contact_number'];
             $account->username = $_POST['username'];
             if ($account->add()) {
-                $_SESSION['success'] = "Account added successfully";
+                $_SESSION['successMessage'] = "Account added successfully";
             } else {
-                $_SESSION['error'] = "Failed to add account";
+                $_SESSION['errorMessage'] = "Failed to add account";
             }
         } catch (Exception $e) {
-            $_SESSION['error'] = $e->getMessage();
+            $_SESSION['errorMessage'] = $e->getMessage();
         }
     } elseif (isset($_POST['update_account'])) {
         try {
@@ -47,25 +47,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $account->username = $_POST['username'];
             $account->profile_image = $_POST['current_profile_image'];
             if ($account->update()) {
-                $_SESSION['success'] = "Account updated successfully";
+                $_SESSION['successMessage'] = "Account updated successfully";
             } else {
-                $_SESSION['error'] = "Failed to update account";
+                $_SESSION['errorMessage'] = "Failed to update account";
             }
         } catch (Exception $e) {
-            $_SESSION['error'] = $e->getMessage();
+            $_SESSION['errorMessage'] = $e->getMessage();
         }
     } elseif (isset($_POST['delete_account'])) {
         try {
             $user_id = $_POST['user_id'];
-            if ($account->delete($user_id)) {
-                $_SESSION['success'] = "Account deleted successfully";
+            $id_to_delete = $_SESSION['user_id'];
+            if ($user_id == $id_to_delete) {
+                $_SESSION['errorMessage'] = "You cannot delete your own account";
+            } elseif ($account->delete($user_id)) {
+                $_SESSION['successMessage'] = "Account deleted successfully";
             } else {
-                $_SESSION['error'] = "Failed to delete account";
+                $_SESSION['errorMessage'] = "Failed to delete account";
             }
         } catch (Exception $e) {
-            $_SESSION['error'] = $e->getMessage();
+            $_SESSION['errorMessage'] = $e->getMessage();
         }
     }
+
     header('Location: account.php');
     exit();
 }
@@ -76,8 +80,20 @@ $departments = $account->fetchDepartments();
 ?>
 <?php require_once '../includes/header.php'; ?>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+<link rel="stylesheet" type="text/css" href="../assets/css/custom.css">
 
 <body class="bg-gray-100 min-h-screen flex relative overflow-x-hidden">
+    <input id="snack-bar-message" type="hidden" value="<?php if (isset($_SESSION['errorMessage'])) {
+                                                            echo $_SESSION['errorMessage'];
+                                                            unset($_SESSION['errorMessage']);
+                                                        }
+
+                                                        if (isset($_SESSION['successMessage'])) {
+                                                            echo $_SESSION['successMessage'];
+                                                            unset($_SESSION['successMessage']);
+                                                        }
+                                                        ?>">
+    <div id="snackbar">Some text some message..</div>
     <!-- Sidebar -->
     <?php require_once '../includes/side_bar.php'; ?>
     <!-- Main Container -->
@@ -570,6 +586,12 @@ $departments = $account->fetchDepartments();
                     }
                 }
             });
+
+            const message = $('#snack-bar-message').val()
+            if (message) {
+                console.log(message);
+                SnackBar.show(message, 3_000);
+            }
 
             // Search functionality
             $('#custom-search').on('keyup', function() {

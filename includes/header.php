@@ -46,4 +46,5 @@ if (isset($_SESSION['user_id'])) {
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../js/snackbar.js"></script>
 </head>
