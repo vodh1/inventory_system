@@ -3,9 +3,9 @@
         <div class="flex-1 relative flex items-center gap-2.5">
             <?php
             $url = $_SERVER['REQUEST_URI'];
-            if ($url == str_contains($url, "inventory.php")) {
+            if ($url == str_contains($url, "inventory.php") || $url == str_contains($url, "account.php")) {
             ?>
-                <input type="text" id="custom-search" placeholder="Search equipment..."
+                <input type="text" id="custom-search" placeholder="<?= ($url == str_contains($url, "account.php")) ? ' Search Account' : ' Search Equipment' ?>"
                     class="w-full py-2 lg:py-3 px-4 pl-10 border border-gray-200 rounded-lg text-sm">
                 <i class="fas fa-search absolute left-3 text-gray-400"></i>
                 <div class="ml-4">
@@ -21,7 +21,7 @@
             $url = $_SERVER['REQUEST_URI'];
             if ($url == str_contains($url, "transaction.php")) {
             ?>
-                <input type="text" id="custom-search" placeholder="Search equipment..."
+                <input type="text" id="custom-search" placeholder=" Search Equipment"
                     name="search" class="w-full py-2 lg:py-3 px-4 pl-10 border border-gray-200 rounded-lg text-sm">
                 <i class="fas fa-search absolute left-3 text-gray-400"></i>
             <?php } ?>
