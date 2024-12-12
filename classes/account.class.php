@@ -102,7 +102,7 @@ class Account
             $stmt->bindParam(':email', $this->email);
             $stmt->bindParam(':role', $this->role);
             $stmt->bindParam(':department', $this->department);
-            $stmt->bindParam(':password', $this->password);
+            $stmt->bindParam(':password', md5($this->password));
             $stmt->bindParam(':contact_number', $this->contact_number);
             $stmt->bindParam(':username', $this->username);
             $stmt->bindParam(':profile_image', $profile_image);
@@ -124,20 +124,36 @@ class Account
                 ? $this->uploadProfileImage($_FILES['profile_image'])
                 : $this->profile_image;
 
-            $sql = "UPDATE users SET 
-                    first_name = :first_name, 
-                    middle_name = :middle_name, 
-                    last_name = :last_name, 
-                    age = :age, 
-                    address = :address, 
-                    email = :email, 
-                    role_id = :role, 
-                    department_id = :department, 
-                    password = :password, 
-                    contact_number = :contact_number, 
-                    username = :username, 
-                    profile_image = :profile_image 
-                    WHERE id = :id";
+            if ($this->password) {
+                $sql = "UPDATE users SET 
+                        first_name = :first_name, 
+                        middle_name = :middle_name, 
+                        last_name = :last_name, 
+                        age = :age, 
+                        address = :address, 
+                        email = :email, 
+                        role_id = :role, 
+                        department_id = :department, 
+                        password = :password, 
+                        contact_number = :contact_number, 
+                        username = :username, 
+                        profile_image = :profile_image 
+                        WHERE id = :id";
+            } else {
+                $sql = "UPDATE users SET 
+                        first_name = :first_name, 
+                        middle_name = :middle_name, 
+                        last_name = :last_name, 
+                        age = :age, 
+                        address = :address, 
+                        email = :email, 
+                        role_id = :role, 
+                        department_id = :department, 
+                        contact_number = :contact_number, 
+                        username = :username, 
+                        profile_image = :profile_image 
+                        WHERE id = :id";
+            }
 
             $stmt = $this->db->connect()->prepare($sql);
             $stmt->bindParam(':first_name', $this->first_name);
@@ -148,7 +164,9 @@ class Account
             $stmt->bindParam(':email', $this->email);
             $stmt->bindParam(':role', $this->role);
             $stmt->bindParam(':department', $this->department);
-            $stmt->bindParam(':password', $this->password);
+            if ($this->password) {
+                $stmt->bindParam(':password', md5($this->password));
+            }
             $stmt->bindParam(':contact_number', $this->contact_number);
             $stmt->bindParam(':username', $this->username);
             $stmt->bindParam(':profile_image', $profile_image);

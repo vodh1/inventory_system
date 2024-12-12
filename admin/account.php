@@ -38,7 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $account->email = $_POST['email'];
             $account->role = $_POST['role'];
             $account->department = $_POST['department'];
-            $account->password = $_POST['password'];
+            if ($_POST['change-passsword'] === 'true') {
+                $account->password = $_POST['password'];
+            } else {
+                $account->password = null;
+            }
             $account->contact_number = $_POST['contact_number'];
             $account->username = $_POST['username'];
             $account->profile_image = $_POST['current_profile_image'];
@@ -392,7 +396,7 @@ $departments = $account->fetchDepartments();
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="flex flex-col gap-2">
+                        <div class="flex flex-col col-span-2">
                             <label class="font-medium text-gray-800">Department *</label>
                             <select name="department" id="edit_department" required class="p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Select Department</option>
@@ -401,13 +405,16 @@ $departments = $account->fetchDepartments();
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="flex flex-col gap-2">
-                            <label class="font-medium text-gray-800">New Password</label>
+                        <div class="col-span-2">
+                            <input id="is-change-password" name="change-passsword" type="checkbox" value="true" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" onclick="showChangePassword()">
+                            <label for="is-change-password" class="font-medium text-gray-800">Change Password</label>
+                        </div>
+                        <div class="flex flex-col gap-2" id="change-password-box" style="display: none;">
+                            <label for="edit-password" class="font-medium text-gray-800">New Password</label>
                             <input type="password" name="password" id="edit_password" class="p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Enter new password" minlength="8">
                             <div id="edit-password-strength" class="w-full h-2 rounded-full bg-gray-200 mt-1">
                                 <div id="edit-strength-bar" class="h-full rounded-full transition-all duration-300"></div>
                             </div>
-                            <p class="text-sm text-gray-500">Leave blank to keep current password</p>
                         </div>
 
                         <!-- Profile Image Section -->
@@ -626,6 +633,20 @@ $departments = $account->fetchDepartments();
             });
         });
 
+        function showChangePassword() {
+            const checkbox = $('#is-change-password')[0];
+            const passwordBox = $('#change-password-box')[0];
+            const passwordField = $('#edit_password')[0];
+
+            if (checkbox.checked) {
+                passwordBox.style.display = 'block';
+                passwordField.disabled = false;
+            } else {
+                passwordBox.style.display = 'none';
+                passwordField.disabled = true;
+            }
+        }
+
         function validateAddAccountForm() {
             const password = $('#password').val();
             const confirmPassword = $('#confirm_password').val();
@@ -821,8 +842,8 @@ $departments = $account->fetchDepartments();
                     return false;
                 }
 
-                if (!/[A-Z]/.test(password) && !/[^A-Za-z0-9]/.test(password)) {
-                    alert('New password must contain at least one uppercase letter or special character!');
+                if (!/[0-9]/.test(password)) {
+                    alert('New password must contain at least one special character!');
                     return false;
                 }
             }

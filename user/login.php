@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if ($user) {
         // Verify the password
-        if ($password === $user['password']) { // Direct comparison for plain text passwords
+        if (md5($password) === $user['password']) { // Direct comparison for plain text passwords
             // Set session variables
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
